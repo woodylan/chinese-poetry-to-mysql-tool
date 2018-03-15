@@ -44,8 +44,10 @@ foreach ($tangFilePathList as $filePath) {
 
     $handle = fopen($sqlPath, 'a+');
     fwrite($handle, $content);
+    fclose($handle);
 }
 
 //最后一行添加分号
 $handle = fopen($sqlPath, 'a+');
 fwrite($handle, ';');
+fclose($handle);
