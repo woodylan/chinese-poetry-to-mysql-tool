@@ -5,10 +5,13 @@ require_once 'src/Converter.php';
 //是否开启过滤
 $ifFilter = true;
 
+//分段
+$section = 3;
+
 $dirPath = dirname(__FILE__);
 $sourceFilePath = $dirPath . '/chinese-poetry/json/';
-$sqlFileName = '/chinese-poetry.sql';
-$sqlPath = $dirPath . $sqlFileName;
+$sqlFileName = "/chinese-poetry-%s.sql";
+$sqlPathString = $dirPath . $sqlFileName;
 
 //判断古诗词仓库是否存在
 $isPathExist = file_exists($sourceFilePath);
@@ -23,19 +26,29 @@ if (empty($tangFilePathList)) {
     die('路径不存在');
 }
 
-file_put_contents($sqlPath, "INSERT INTO `tb_poems` (`id`, `title`, `content`, `author`) VALUES \r\n");
+//每一个文件包含多少个json文件的数据
+$eachFileLong = ceil(count($tangFilePathList) / $section);
+
+for ($i = 1; $i <= $section; $i++) {
+    file_put_contents(sprintf($sqlPathString, $i), "INSERT INTO `tb_poems` (`id`, `title`, `author`, `content`) VALUES \r\n");
+}
+
 
 $id = 0;
 $converter = new Converter();
-foreach ($tangFilePathList as $filePath) {
+$oldNumber = 0;
+foreach ($tangFilePathList as $fileCount => $filePath) {
     $fileContent = file_get_contents($filePath);
 
     $fileContentArray = json_decode($fileContent, true);
 
+    $fileNumber = floor($fileCount / $eachFileLong) + 1;
+
+
+    $sqlPath = sprintf($sqlPathString, (string)$fileNumber);
+
     $content = '';
     foreach ($fileContentArray as $value) {
-        $id++;
-
         //过滤
         if ($ifFilter) {
             $isAllow = filter($value['paragraphs']);
@@ -46,14 +59,16 @@ foreach ($tangFilePathList as $filePath) {
 
         $paragraphs = implode($value['paragraphs'], '\n');
         $paragraphs = $converter->turn($paragraphs);
-        $paragraphsJson = json_encode(explode('\n', $paragraphs));
 
+        $id++;
         //给上一行加入逗号
-        if ($id > 1) {
+        if ($oldNumber == $fileNumber) {
             $content .= ",\r\n";
         }
 
-        $content .= "($id,\"{$value['title']}\",\"{$paragraphsJson}\",\"{$value['author']}\")";
+        $oldNumber = $fileNumber;
+
+        $content .= "(\"{$id}\",\"{$value['title']}\",\"{$value['author']}\",\"{$paragraphs}\")";
     }
 
     $handle = fopen($sqlPath, 'a+');
@@ -62,10 +77,12 @@ foreach ($tangFilePathList as $filePath) {
 }
 
 //最后一行添加分号
-$handle = fopen($sqlPath, 'a+');
-fwrite($handle, ';');
-fclose($handle);
 
+for ($i = 1; $i <= $section; $i++) {
+    $handle = fopen(sprintf($sqlPathString, $i), 'a+');
+    fwrite($handle, ';');
+    fclose($handle);
+}
 
 //过滤脚本
 function filter($paragraphs, $sentenceLength = 2, $charLength = 16)
