@@ -2,19 +2,19 @@
 
 require_once 'src/Converter.php';
 
-$dirPath = dirname(__FILE__);
+//是否开启过滤
+$ifFilter = true;
 
+$dirPath = dirname(__FILE__);
 $sourceFilePath = $dirPath . '/chinese-poetry/json/';
+$sqlFileName = '/chinese-poetry.sql';
+$sqlPath = $dirPath . $sqlFileName;
 
 //判断古诗词仓库是否存在
 $isPathExist = file_exists($sourceFilePath);
 if ($isPathExist == false) {
     die('古诗词仓库不存在，请按说明下载');
 }
-
-$sqlFileName = 'chinese-poetry.sql';
-
-$sqlPath = $dirPath . $sqlFileName;
 
 //唐诗json文件的路径
 $tangFilePathList = glob("{$sourceFilePath}poet.tang.*.json");
@@ -35,8 +35,16 @@ foreach ($tangFilePathList as $filePath) {
     $content = '';
     foreach ($fileContentArray as $value) {
         $id++;
-        $paragraphs = implode($value['paragraphs'], '\n');
 
+        //过滤
+        if ($ifFilter) {
+            $isAllow = filter($value['paragraphs']);
+            if ($isAllow == false) {
+                continue;
+            }
+        }
+
+        $paragraphs = implode($value['paragraphs'], '\n');
         $paragraphs = $converter->turn($paragraphs);
 
         //给上一行加入逗号
@@ -56,3 +64,29 @@ foreach ($tangFilePathList as $filePath) {
 $handle = fopen($sqlPath, 'a+');
 fwrite($handle, ';');
 fclose($handle);
+
+
+//过滤脚本
+function filter($paragraphs, $sentenceLength = 2, $charLength = 16)
+{
+    if (count($paragraphs) > $sentenceLength) {
+        return false;
+    }
+
+    //判断每句是否长短一样
+    foreach ($paragraphs as $key => $value) {
+        $length = strlen($value);
+        if ($key >= 1) {
+            //判断跟上一个元素长度是否相等
+            if (strlen($paragraphs[$key - 1]) != $length) {
+                return false;
+            }
+        }
+
+        if ($length > $charLength * 3) {
+            return false;
+        }
+    }
+
+    return true;
+}
