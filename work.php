@@ -46,13 +46,14 @@ foreach ($tangFilePathList as $filePath) {
 
         $paragraphs = implode($value['paragraphs'], '\n');
         $paragraphs = $converter->turn($paragraphs);
+        $paragraphsJson = json_encode(explode('\n', $paragraphs));
 
         //给上一行加入逗号
         if ($id > 1) {
             $content .= ",\r\n";
         }
 
-        $content .= "($id,\"{$value['title']}\",\"{$paragraphs}\",\"{$value['author']}\")";
+        $content .= "($id,\"{$value['title']}\",\"{$paragraphsJson}\",\"{$value['author']}\")";
     }
 
     $handle = fopen($sqlPath, 'a+');
