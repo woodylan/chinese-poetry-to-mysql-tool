@@ -1,8 +1,10 @@
 <?php
 
+require_once 'src/Converter.php';
+
 $dirPath = dirname(__FILE__);
 
-$sourceFilePath = $dirPath . 'chinese-poetry/json/';
+$sourceFilePath = $dirPath . '/chinese-poetry/json/';
 
 //判断古诗词仓库是否存在
 $isPathExist = file_exists($sourceFilePath);
@@ -24,6 +26,7 @@ if (empty($tangFilePathList)) {
 file_put_contents($sqlPath, "INSERT INTO `tb_poems` (`id`, `title`, `content`, `author`) VALUES \r\n");
 
 $id = 0;
+$converter = new Converter();
 foreach ($tangFilePathList as $filePath) {
     $fileContent = file_get_contents($filePath);
 
@@ -33,6 +36,8 @@ foreach ($tangFilePathList as $filePath) {
     foreach ($fileContentArray as $value) {
         $id++;
         $paragraphs = implode($value['paragraphs'], '\n');
+
+        $paragraphs = $converter->turn($paragraphs);
 
         //给上一行加入逗号
         if ($id > 1) {
