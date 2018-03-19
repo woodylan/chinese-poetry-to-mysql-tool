@@ -30,7 +30,7 @@ if (empty($tangFilePathList)) {
 $eachFileLong = ceil(count($tangFilePathList) / $section);
 
 for ($i = 1; $i <= $section; $i++) {
-    file_put_contents(sprintf($sqlPathString, $i), "INSERT INTO `tb_poems` (`id`, `title`, `author`, `content`) VALUES \r\n");
+    file_put_contents(sprintf($sqlPathString, $i), "INSERT INTO `tb_poems` (`id`, `title`, `author`, `content`,`create_time`) VALUES \r\n");
 }
 
 
@@ -68,7 +68,10 @@ foreach ($tangFilePathList as $fileCount => $filePath) {
 
         $oldNumber = $fileNumber;
 
-        $content .= "(\"{$id}\",\"{$value['title']}\",\"{$value['author']}\",\"{$paragraphs}\")";
+        $uuid = createUuid();
+        $time = time();
+
+        $content .= "(\"{$uuid}\",\"{$value['title']}\",\"{$value['author']}\",\"{$paragraphs}\",{$time})";
     }
 
     $handle = fopen($sqlPath, 'a+');
@@ -87,7 +90,7 @@ for ($i = 1; $i <= $section; $i++) {
 //过滤脚本
 function filter($paragraphs, $sentenceLength = 2, $charLength = 16)
 {
-    if (count($paragraphs) > $sentenceLength) {
+    if (count($paragraphs) != $sentenceLength) {
         return false;
     }
 
@@ -107,4 +110,10 @@ function filter($paragraphs, $sentenceLength = 2, $charLength = 16)
     }
 
     return true;
+}
+
+function createUuid()
+{
+    $originUuid = strtolower(str_replace('-', '', uuid_create()));
+    return substr(md5($originUuid), 8, 16);
 }
