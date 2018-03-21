@@ -58,6 +58,12 @@ foreach ($tangFilePathList as $fileCount => $filePath) {
         }
 
         $paragraphs = implode($value['paragraphs'], '\n');
+
+        //过滤掉乱码的诗词
+        if (stringInArray($paragraphs, ['□'])) {
+            continue;
+        }
+
         $paragraphs = $converter->turn($paragraphs);
 
         $id++;
@@ -116,4 +122,15 @@ function createUuid()
 {
     $originUuid = strtolower(str_replace('-', '', uuid_create()));
     return substr(md5($originUuid), 8, 16);
+}
+
+function stringInArray($string, array $array)
+{
+    foreach ($array as $value) {
+        if (strpos($string, $value)) {
+            return true;
+        }
+    }
+
+    return false;
 }
