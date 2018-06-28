@@ -1,3 +1,5 @@
 .gitignore
 chinese-poetry/
 .idea
+composer.lock
+vendor

@@ -1,6 +1,8 @@
 <?php
 
-require_once 'src/Converter.php';
+require __DIR__ . '/vendor/autoload.php';
+
+use Webpatser\Uuid\Uuid;
 
 class work
 {
@@ -39,7 +41,7 @@ class work
 
 
         $id = 0;
-        $converter = new Converter();
+        $converter = new \Woodylan\Converter\Converter();
         $oldNumber = 0;
         foreach ($tangFilePathList as $fileCount => $filePath) {
             $fileContent = file_get_contents($filePath);
@@ -123,10 +125,14 @@ class work
         return true;
     }
 
-    public function createUuid()
+    public function createUuid($short = true)
     {
-        $originUuid = strtolower(str_replace('-', '', uuid_create()));
-        return substr(md5($originUuid), 8, 16);
+        $uuid = str_replace('-', '', Uuid::generate()->string);
+        if ($short) {
+            $uuid = substr($uuid, 8, 16);
+        }
+
+        return $uuid;
     }
 
     public function stringInArray($string, array $array)

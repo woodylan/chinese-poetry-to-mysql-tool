@@ -30,9 +30,13 @@ cd chinese-poetry-to-mysql-tool
 git clone https://github.com/chinese-poetry/chinese-poetry.git
 ~~~
 
+3、安装composer包依赖
 
+~~~shell
+composer install
+~~~
 
-3、开始编译成 `sql` 文件
+4、开始编译成 `sql` 文件
 
 ```shell
 php work.php
