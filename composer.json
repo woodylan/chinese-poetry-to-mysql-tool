@@ -1,0 +1,6 @@
+{
+    "require": {
+        "woodylan/converter": "^0.1.1",
+        "webpatser/laravel-uuid": "^3.0"
+    }
+}
